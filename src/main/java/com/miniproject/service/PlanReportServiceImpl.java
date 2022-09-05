@@ -1,15 +1,13 @@
 package com.miniproject.service;
 
 import java.awt.Color;
-import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -17,17 +15,14 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Example;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import com.lowagie.text.Document;
-import com.lowagie.text.DocumentException;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
-import com.lowagie.text.Table;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
@@ -35,6 +30,7 @@ import com.miniproject.dto.SearchRequestDto;
 import com.miniproject.dto.SearchResponseDto;
 import com.miniproject.entities.PlansReport;
 import com.miniproject.repository.PlanReportRepository;
+
 @Service
 public class PlanReportServiceImpl implements PlansReportService {
 	@Autowired
@@ -54,23 +50,33 @@ public class PlanReportServiceImpl implements PlansReportService {
 	public List<SearchResponseDto> getAllPlanReport(SearchRequestDto searchRequestDto) {
 		List<SearchResponseDto> responseDtos = new ArrayList<>();
 		PlansReport queryBuilder = new PlansReport();
-		SearchResponseDto responseDto = new SearchResponseDto();
 
-		if (searchRequestDto.getPlanName() != null && searchRequestDto.getPlanName() != "") {
-			queryBuilder.setPlanName(searchRequestDto.getPlanName());
+		// BeanUtils.copyProperties(searchRequestDto, queryBuilder);
+
+		String planName = searchRequestDto.getPlanName();
+
+		if (planName != null && !planName.equals("")) {
+			queryBuilder.setPlanName(planName);
 		}
-		if (searchRequestDto.getPlanStatus() != null && searchRequestDto.getPlanStatus() != "") {
-			queryBuilder.setPlanStatus(searchRequestDto.getPlanStatus());
+		String planStatus = searchRequestDto.getPlanStatus();
+		if (planStatus != null && !planStatus.equals("")) {
+			queryBuilder.setPlanStatus(planStatus);
 		}
-		if (searchRequestDto.getStartDate() != null) {
+		LocalDate startDate = searchRequestDto.getStartDate();
+		if (startDate != null) {
 			queryBuilder.setStartDate(searchRequestDto.getStartDate());
 		}
-		if (searchRequestDto.getEndDate() != null) {
+		LocalDate endDate = searchRequestDto.getEndDate();
+		if (endDate != null) {
 			queryBuilder.setEndDate(searchRequestDto.getEndDate());
 		}
-		Example<PlansReport> example = Example.of(queryBuilder);
 
-		planReportRepository.findAll(example).forEach(planEntity -> {
+		Example<PlansReport> example = Example.of(queryBuilder);
+		
+		List<PlansReport> entities = planReportRepository.findAll(example);
+
+		entities.forEach(planEntity -> {
+			SearchResponseDto responseDto = new SearchResponseDto();
 			BeanUtils.copyProperties(planEntity, responseDto);
 			responseDtos.add(responseDto);
 		});
@@ -84,7 +90,7 @@ public class PlanReportServiceImpl implements PlansReportService {
 		PdfWriter pdfWriter = PdfWriter.getInstance(document, response.getOutputStream());
 
 		document.open();
-		Font font = FontFactory.getFont(FontFactory.TIMES_BOLDITALIC);
+		Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
 		font.setSize(16);
 		font.setColor(Color.CYAN);
 
@@ -102,7 +108,7 @@ public class PlanReportServiceImpl implements PlansReportService {
 		cell.setPadding(5);
 
 		font = FontFactory.getFont(FontFactory.HELVETICA);
-		font.setColor(Color.WHITE);
+		font.setColor(Color.BLUE);
 
 		cell.setPhrase(new Phrase("Serial No", font));
 
@@ -121,8 +127,8 @@ public class PlanReportServiceImpl implements PlansReportService {
 		table.addCell(cell);
 		cell.setPhrase(new Phrase("Adhar Number", font));
 		table.addCell(cell);
-  
-		List<PlansReport>  entities = planReportRepository.findAll();
+
+		List<PlansReport> entities = planReportRepository.findAll();
 		int i = 0;
 		for (PlansReport entity : entities) {
 			table.addCell((entity.getPlanId().toString()));
@@ -131,13 +137,14 @@ public class PlanReportServiceImpl implements PlansReportService {
 			table.addCell(entity.getMobileNo());
 			table.addCell(entity.getGender());
 			table.addCell(entity.getAdharNumber());
-		} 
+		}
 		document.add(table);
+		document.close();
 	}
 
 	@Override
 	public void generatePlanReportAsXls(HttpServletResponse httpServletResponse) throws Exception {
-		
+
 		List<PlansReport> planReports = null;
 		Workbook workbook = null;
 		Sheet sheet = null;
@@ -146,12 +153,12 @@ public class PlanReportServiceImpl implements PlansReportService {
 		workbook = new HSSFWorkbook();
 		sheet = workbook.createSheet("PlanReports");
 		headerRow = sheet.createRow(0);
-		headerRow.createCell(0).setCellValue("sNo");
-		headerRow.createCell(1).setCellValue("fullName");
-		headerRow.createCell(2).setCellValue("emailAddress");
-		headerRow.createCell(3).setCellValue("moblileNo");
-		headerRow.createCell(4).setCellValue("gender");
-		headerRow.createCell(5).setCellValue("adharNumber");
+		headerRow.createCell(0).setCellValue("SNo");
+		headerRow.createCell(1).setCellValue("Full Name");
+		headerRow.createCell(2).setCellValue("Email Address");
+		headerRow.createCell(3).setCellValue("Mobile Number");
+		headerRow.createCell(4).setCellValue("Gender");
+		headerRow.createCell(5).setCellValue("Adhar Number");
 
 		/*
 		 * planReportRepository.findAll().forEach(entity -> { });

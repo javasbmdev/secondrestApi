@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class SearchResponseDto {
-	private int sNo;
+	private int planId;
 	private String fullName;
 	private String emailAddress;
 	private String mobileNo;

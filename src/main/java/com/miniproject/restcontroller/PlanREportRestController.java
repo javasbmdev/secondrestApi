@@ -27,7 +27,7 @@ public class PlanREportRestController {
 	}
 	@GetMapping("/plan-statuses")
 	public ResponseEntity<List< String>> getAllPlanStatuses(){
-		return new ResponseEntity< >(service.getAllUniquePlanName(),HttpStatus.OK);
+		return new ResponseEntity< >(service.getAllUniquePlanStatus(),HttpStatus.OK);
 	}
 	@PostMapping("/search")
 	public ResponseEntity<List<SearchResponseDto>> search(@RequestBody SearchRequestDto requestDto){
@@ -38,7 +38,7 @@ public class PlanREportRestController {
 	public void getExcelReport(HttpServletResponse response) throws Exception {
 		response.setContentType("application/actet-stream");
 		String headerKey = "Content-Disposition";
-		String value = "attachment;filename=data.xls";
+		String value = "attachment;filename=PlanReport.xls";
 		response.setHeader(headerKey, value);
 		service.generatePlanReportAsXls(response);
 	}
@@ -46,7 +46,7 @@ public class PlanREportRestController {
 	public void  getPdfReport(HttpServletResponse response) throws Exception {
 		response.setContentType("application/pdf");
 		String headerKey = "Content-Disposition";
-		String value = "attachment;filename=data.pdf";
+		String value = "attachment;filename=PlanReport.pdf";
 		response.setHeader(headerKey, value);
 		service.generatePlanReportAsPdf(response);
 	}
